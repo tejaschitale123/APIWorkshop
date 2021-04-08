@@ -1,13 +1,15 @@
 package restAssuredAPI;
 
-import io.restassured.RestAssured;
+import api.workshop.ApiHelper;
 import org.testng.annotations.BeforeTest;
 
 public class BaseTest {
-    final String BASE_URI = "https://reqres.in";
+    private static final String BASE_URI = "https://reqres.in";
+
+    protected ApiHelper apiHelper;
 
     @BeforeTest
-    public void setup() {
-        RestAssured.baseURI = BASE_URI;
+    public void setup () {
+        this.apiHelper = ApiHelper.create (BASE_URI);
     }
 }

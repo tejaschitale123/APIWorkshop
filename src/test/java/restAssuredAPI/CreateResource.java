@@ -1,27 +1,28 @@
 package restAssuredAPI;
 
-import io.restassured.RestAssured;
-import io.restassured.http.ContentType;
-import io.restassured.response.Response;
+import static com.google.common.truth.Truth.assertWithMessage;
 
-import org.json.simple.JSONObject;
-import org.testng.Assert;
-import org.testng.annotations.BeforeTest;
+import api.workshop.ResponseHelper;
+import io.restassured.http.ContentType;
 import org.testng.annotations.Test;
 
-import static io.restassured.RestAssured.given;
-
 public class CreateResource extends BaseTest {
-
     @Test
-    public void createUser() {
-        JSONObject requestData = new JSONObject();
-        requestData.put("name", "tejas");
-        requestData.put("job", "Quality Analyst");
-        Response response = given().contentType(ContentType.JSON).
-                body(requestData).
-                when().
-                post("/api/users");
-        Assert.assertEquals(response.getStatusCode(), 201, "Status code mismatch expected 200 ,Received : " + response.getStatusCode());
+    public void createUser () {
+        final User user = User.builder ()
+            .name ("Tejas")
+            .job ("QA")
+            .build ();
+
+        final ResponseHelper response = this.apiHelper.basePath ("/api/users")
+            .contentType (ContentType.JSON)
+            .body (user)
+            .post ();
+
+        assertWithMessage ("Status Code").that (response.statusCode ())
+            .isEqualTo (201);
+        assertWithMessage ("ID").that (response.valueFor ("id")
+            .toString ())
+            .isNotNull ();
     }
 }
