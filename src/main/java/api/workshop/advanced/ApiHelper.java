@@ -1,4 +1,6 @@
-package api.workshop;
+package api.workshop.advanced;
+
+import java.io.File;
 
 import com.google.gson.FieldNamingPolicy;
 import com.google.gson.Gson;
@@ -18,13 +20,17 @@ public class ApiHelper {
         return new ApiHelper (baseUri);
     }
 
-    private final RequestSpecification request;
+    private RequestSpecification request;
 
     private ApiHelper (final String baseUri) {
-        this.request = RestAssured.given ()
-            .baseUri (baseUri)
-            .log ()
-            .all ();
+        RestAssured.baseURI = baseUri;
+    }
+
+    public ApiHelper auth (final String accessToken) {
+        this.request.auth ()
+            .preemptive ()
+            .oauth2 (accessToken);
+        return this;
     }
 
     public ApiHelper basePath (final String basePath) {
@@ -37,8 +43,29 @@ public class ApiHelper {
         return this;
     }
 
+    public ApiHelper compose () {
+        this.request = RestAssured.given ()
+            .log ()
+            .all ();
+        return this;
+    }
+
     public ApiHelper contentType (final ContentType contentType) {
         this.request.contentType (contentType);
+        return this;
+    }
+
+    public ResponseHelper delete (final String path) {
+        return new ResponseHelper (this.request.when ()
+            .delete (path));
+    }
+
+    public ResponseHelper delete () {
+        return delete ("");
+    }
+
+    public ApiHelper formParam (final String key, final Object value) {
+        this.request.formParam (key, value);
         return this;
     }
 
@@ -53,6 +80,11 @@ public class ApiHelper {
 
     public ApiHelper header (final String key, final String value) {
         this.request.header (new Header (key, value));
+        return this;
+    }
+
+    public ApiHelper multiPart (final String name, final String filePath) {
+        this.request.multiPart (name, new File (filePath));
         return this;
     }
 

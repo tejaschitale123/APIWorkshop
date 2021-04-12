@@ -2,9 +2,28 @@
 <!DOCTYPE suite SYSTEM "http://testng.org/testng-1.0.dtd">
 
 <suite name="Suite1" verbose="1">
-    <test name="all-tests">
+    <test name="all-tests-basic">
         <classes>
-            <class name="restAssuredAPI.CreateResource"/>
+            <class name="api.workshop.basic.AlbumJourneyTest">
+                <methods>
+                    <include name="testCreateAlbum"/>
+                    <include name="testUploadImage"/>
+                    <include name="testDeleteImage"/>
+                    <include name="testDeleteAlbum"/>
+                </methods>
+            </class>
+        </classes>
+    </test>
+    <test name="all-tests-advanced">
+        <classes>
+            <class name="api.workshop.advanced.AlbumJourneyTest">
+                <methods>
+                    <include name="testCreateAlbum"/>
+                    <include name="testImageUpload"/>
+                    <include name="testImageDelete"/>
+                    <include name="testAlbumDelete"/>
+                </methods>
+            </class>
         </classes>
     </test>
 </suite>
