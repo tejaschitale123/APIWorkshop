@@ -5,32 +5,37 @@ import static java.lang.System.getProperty;
 import static java.text.MessageFormat.format;
 
 import lombok.SneakyThrows;
+import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.BeforeSuite;
-import org.testng.annotations.Ignore;
 import org.testng.annotations.Test;
 
 public class AlbumJourneyTest {
     private String    accessToken;
-    private String    albumDeleteHash;
     private String    albumHash;
     private ApiHelper api;
-    private String    clientId;
-    private String    imageDeleteHash;
     private String    imageHash;
 
     @BeforeSuite
     public void setup () {
         this.api = ApiHelper.create (ConfigHelper.getConfigValue ("base_url"));
-        this.clientId = ConfigHelper.getConfigValue ("client_id");
         this.accessToken = ConfigHelper.getConfigValue ("access_token");
+    }
+
+    @BeforeMethod
+    public void setupRequest () {
+        this.api.compose ()
+            .basePath ("/3")
+            .auth (this.accessToken);
     }
 
     @Test
     public void testAlbumDelete () {
-        final ResponseHelper response = this.api.compose ()
-            .header ("Authorization", format ("Bearer {0}", this.accessToken))
-            .pathParam ("albumHash", this.albumHash)
-            .delete ("/3/album/{albumHash}");
+        assertWithMessage ("Album Hash").that (this.albumHash)
+            .isNotNull ();
+
+        final ResponseHelper response = this.api.pathParam ("albumHash", this.albumHash)
+            .delete ("/album/{albumHash}");
+
         assertWithMessage ("Status Code").that (response.statusCode ())
             .isEqualTo (200);
         assertWithMessage ("Success").that (response.boolValue ("success"))
@@ -39,41 +44,26 @@ public class AlbumJourneyTest {
 
     @Test
     public void testCreateAlbum () {
-        final ResponseHelper response = this.api.compose ()
-            .header ("Authorization", format ("Bearer {0}", this.accessToken))
-            .formParam ("title", "My title 1")
+        final ResponseHelper response = this.api.formParam ("title", "My title 1")
             .formParam ("description", "This albums contains a lot of dank memes. Be prepared.")
-            .post ("/3/album");
-        assertWithMessage ("Status Code").that (response.statusCode ())
-            .isEqualTo (200);
-        assertWithMessage ("Success").that (response.boolValue ("success"))
-            .isTrue ();
-        this.albumHash = response.stringValue ("data.id");
-        this.albumDeleteHash = response.stringValue ("data.deletehash");
-    }
+            .post ("/album");
 
-    @Ignore
-    @Test
-    public void testGenerateToken () {
-        final ResponseHelper response = this.api.compose ()
-            .formParam ("refresh_token", ConfigHelper.getConfigValue ("refresh_token"))
-            .formParam ("client_id", this.clientId)
-            .formParam ("client_secret", ConfigHelper.getConfigValue ("client_secret"))
-            .formParam ("grant_type", "refresh_token")
-            .post ("/oauth2/token");
         assertWithMessage ("Status Code").that (response.statusCode ())
             .isEqualTo (200);
         assertWithMessage ("Success").that (response.boolValue ("success"))
             .isTrue ();
-        this.accessToken = response.stringValue ("accessToken");
+
+        this.albumHash = response.stringValue ("data.id");
     }
 
     @Test
     public void testImageDelete () {
-        final ResponseHelper response = this.api.compose ()
-            .header ("Authorization", format ("Bearer {0}", this.accessToken))
-            .pathParam ("imageHash", this.imageHash)
-            .delete ("/3/image/{imageHash}");
+        assertWithMessage ("Image Hash").that (this.imageHash)
+            .isNotNull ();
+
+        final ResponseHelper response = this.api.pathParam ("imageHash", this.imageHash)
+            .delete ("/image/{imageHash}");
+
         assertWithMessage ("Status Code").that (response.statusCode ())
             .isEqualTo (200);
         assertWithMessage ("Success").that (response.boolValue ("success"))
@@ -83,19 +73,22 @@ public class AlbumJourneyTest {
     @SneakyThrows
     @Test
     public void testImageUpload () {
-        final ResponseHelper response = this.api.compose ()
-            .auth (this.accessToken)
-            .multiPart ("image", format ("{0}/src/test/resources/pic.jpg", getProperty ("user.dir")))
+        assertWithMessage ("Album Hash").that (this.albumHash)
+            .isNotNull ();
+
+        final ResponseHelper response = this.api.multiPart ("image",
+            format ("{0}/src/test/resources/pic.jpg", getProperty ("user.dir")))
             .formParam ("album", this.albumHash)
             .formParam ("name", "pic.jpg")
             .formParam ("title", "My Pic")
             .formParam ("description", "This is me")
-            .post ("/3/upload");
+            .post ("/upload");
+
         assertWithMessage ("Status Code").that (response.statusCode ())
             .isEqualTo (200);
         assertWithMessage ("Success").that (response.boolValue ("success"))
             .isTrue ();
+
         this.imageHash = response.stringValue ("data.id");
-        this.imageDeleteHash = response.stringValue ("data.deletehash");
     }
 }
