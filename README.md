@@ -2,7 +2,7 @@
 
 ## Pre-requisite
 
-- JDK 15
+- JDK 1.8
 - Lombok plugin
 
 ## Usage
